@@ -2,7 +2,6 @@ package main
 
 import (
 	"virus_mocker/app/internal/config"
-	"virus_mocker/app/internal/db"
 	"virus_mocker/app/internal/routes"
 	"virus_mocker/app/pkg/logger"
 
@@ -18,15 +17,6 @@ type server struct {
 func main() {
 	server := &server{
 		Logger: logger.Init(),
-	}
-
-	if err := db.Init(); err != nil {
-		panic(err)
-	}
-
-	_, err := config.Init()
-	if err != nil {
-		panic(err)
 	}
 
 	if err := routes.New(); err != nil {

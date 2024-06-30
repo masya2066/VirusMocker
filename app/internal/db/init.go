@@ -1,6 +1,7 @@
 package db
 
 import (
+	"strconv"
 	"virus_mocker/app/internal/config"
 	"virus_mocker/app/pkg/logger"
 
@@ -14,6 +15,10 @@ type dbConfig struct {
 	Username string
 	Password string
 	Name     string
+}
+
+type Database struct {
+	*gorm.DB
 }
 
 type server struct {
@@ -38,21 +43,30 @@ func initConfig() (*dbConfig, error) {
 	}, nil
 }
 
-func Init() error {
+func Init() (db Database, fail error) {
 	cfg, err := initConfig()
 	if err != nil {
-		return err
+		return Database{DB}, err
 	}
 
-	dsn := "host=" + cfg.Host + " user=" + cfg.Username + " password=" + cfg.Password + " dbname=" + cfg.Name + " port=" + string(cfg.Port) + " sslmode=disable"
+	dsn := "host=" + cfg.Host + " user=" + cfg.Username + " password=" + cfg.Password + " dbname=" + cfg.Name + " port=" + strconv.Itoa(cfg.Port) + " sslmode=disable"
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	log := logger.Init()
 
-	if err := DB.AutoMigrate(); err != nil {
-		return err
+	if err := migrate(); err != nil {
+		return Database{DB}, err
 	}
 
 	log.Info("Database was started correctly")
+	return Database{DB}, nil
+}
+
+func migrate() error {
+	if err := DB.AutoMigrate(
+		&KataFile{},
+	); err != nil {
+		return err
+	}
 	return nil
 }

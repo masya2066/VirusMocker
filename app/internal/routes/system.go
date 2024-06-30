@@ -5,5 +5,7 @@ import (
 )
 
 func (a Api) Ping(r *gin.Context) {
-
+	r.JSON(200, gin.H{
+		"message": "pong",
+	})
 }

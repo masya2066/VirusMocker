@@ -3,6 +3,7 @@ package routes
 import (
 	"virus_mocker/app/internal/broker"
 	"virus_mocker/app/internal/config"
+	"virus_mocker/app/internal/db"
 	"virus_mocker/app/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -10,9 +11,10 @@ import (
 )
 
 type Api struct {
-	logger *logger.Logger
+	db     db.Database
 	config *config.Config
 	broker *redis.Client
+	logger *logger.Logger
 }
 
 func New() error {
@@ -22,23 +24,31 @@ func New() error {
 	if err != nil {
 		return err
 	}
+
+	db, err := db.Init()
+	if err != nil {
+		return err
+	}
+
+	config, err := config.Init()
+	if err != nil {
+		panic(err)
+	}
+
 	api := &Api{
+		db:     db,
+		config: config,
 		logger: logger.Init(),
 		broker: redInit,
 	}
 
 	api.logger.Info("Redis initialized!")
 
-	api.config, err = config.Init()
-	if err != nil {
-		return err
-	}
 	r := gin.Default()
-	if err := r.Run(":8080"); err != nil {
+	if err := api.router(r); err != nil {
 		return err
 	}
-
-	if err := api.router(r); err != nil {
+	if err := r.Run(":8080"); err != nil {
 		return err
 	}
 
@@ -46,11 +56,23 @@ func New() error {
 }
 
 func (a *Api) router(r *gin.Engine) error {
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	api := r.Group("/api_v1")
+	{
+		api.GET("/ping", a.Ping)
+		kata := api.Group("/kata")
+		{
+			scanner := kata.Group("/scanner")
+			{
+				v1 := scanner.Group("/v1")
+				{
+					sensors := v1.Group("/sensors")
+					{
+						sensors.POST("/dd62a4ee-a00b-438c-b95a-58006b8f6056/scans", a.CreateFile)
+					}
+				}
+			}
+		}
+	}
 
 	return nil
 }
