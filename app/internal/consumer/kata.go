@@ -19,8 +19,11 @@ func KataChecker(scanid string, file multipart.File, header *multipart.FileHeade
 	}
 
 	exist, err := files.CheckFileContent(file, "virus_exist")
+	if err != nil {
+		log.Error(err.Error())
+	}
 	if exist {
-		time.Sleep(time.Duration(size*1) * time.Second)
+		time.Sleep(time.Duration(5) * time.Second)
 		if updateError := db.DB.Model(db.KataFile{}).Where("scan_id = ?", scanid).Update("state", db.KataDetect); updateError.Error != nil {
 			log.Error(updateError.Error.Error())
 		}
