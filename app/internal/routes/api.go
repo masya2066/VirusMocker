@@ -2,7 +2,6 @@ package routes
 
 import (
 	"time"
-	"virus_mocker/app/internal/broker"
 	"virus_mocker/app/internal/config"
 	"virus_mocker/app/internal/db"
 	"virus_mocker/app/pkg/logger"
@@ -22,10 +21,10 @@ type Api struct {
 func New() error {
 	var err error
 
-	redInit, err := broker.Init()
-	if err != nil {
-		return err
-	}
+	// redInit, err := broker.Init()
+	// if err != nil {
+	// 	return err
+	// }
 
 	db, err := db.Init()
 	if err != nil {
@@ -41,7 +40,7 @@ func New() error {
 		db:     db,
 		config: config,
 		logger: logger.Init(),
-		broker: redInit,
+		// broker: redInit,
 	}
 
 	api.logger.Info("Redis initialized!")
