@@ -2,7 +2,6 @@ package routes
 
 import (
 	"net/http"
-	"strings"
 	"virus_mocker/app/internal/consumer"
 	"virus_mocker/app/internal/db"
 	"virus_mocker/app/internal/models/response"
@@ -46,27 +45,14 @@ func (a Api) CreateFile(c *gin.Context) {
 }
 
 func (a Api) GetFiles(c *gin.Context) {
-	states := c.Query("state")
-
-	stateList := strings.Split(states, ",")
 
 	var scans []db.KataFile
-	if len(stateList) == 0 {
-		if err := a.db.Find(&scans).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": err.Error(),
-				"success": false,
-			})
-			return
-		}
-	} else {
-		if err := a.db.Where("state IN ?", stateList).Find(&scans).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"message": err.Error(),
-				"success": false,
-			})
-			return
-		}
+	if err := a.db.Model(db.KataFile{}).Find(&scans).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err.Error(),
+			"success": false,
+		})
+		return
 	}
 
 	var scanIds []db.FileState
