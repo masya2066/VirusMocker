@@ -74,13 +74,13 @@ func (a *Api) router(r *gin.Engine) error {
 			{
 				v1 := scanner.Group("/v1")
 				{
-					sensors := v1.Group("/sensors")
+					// sensors := v1.Group("/sensors")
 					{
-						instance := sensors.Group("/:sensor_id")
+						// instance := sensors.Group("/:sensor_id")
 						{
-							instance.POST("/scans", a.CreateFile)
-							instance.GET("/scans", a.GetFiles)
-							instance.DELETE("/scans/:scan_id", a.DeleteFile)
+							v1.POST("/scans", a.CreateFile)
+							v1.GET("/scans", a.GetFiles)
+							v1.DELETE("/scans/:scan_id", a.DeleteFile)
 						}
 					}
 				}

@@ -11,14 +11,6 @@ import (
 )
 
 func (a Api) CreateFile(c *gin.Context) {
-	sensorId := c.Param("sensor_id")
-	if sensorId == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Undefined sensor id",
-			"success": false,
-		})
-		return
-	}
 	objectType := c.Request.FormValue("objectType")
 	if objectType != "file" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -32,7 +24,7 @@ func (a Api) CreateFile(c *gin.Context) {
 	file := &db.KataFile{
 		ScanId:   scanId,
 		State:    db.KataProcessing,
-		SensorId: sensorId,
+		SensorId: "",
 	}
 
 	if err := a.db.Create(file).Error; err != nil {
@@ -54,18 +46,27 @@ func (a Api) CreateFile(c *gin.Context) {
 }
 
 func (a Api) GetFiles(c *gin.Context) {
-	sensorId := c.Param("sensor_id")
 	states := c.Query("state")
 
 	stateList := strings.Split(states, ",")
 
 	var scans []db.KataFile
-	if err := a.db.Where("state IN ? AND sensor_id = ?", stateList, sensorId).Find(&scans).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": err.Error(),
-			"success": false,
-		})
-		return
+	if len(stateList) == 0 {
+		if err := a.db.Find(&scans).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err.Error(),
+				"success": false,
+			})
+			return
+		}
+	} else {
+		if err := a.db.Where("state IN ?", stateList).Find(&scans).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err.Error(),
+				"success": false,
+			})
+			return
+		}
 	}
 
 	var scanIds []db.FileState
@@ -82,15 +83,6 @@ func (a Api) GetFiles(c *gin.Context) {
 }
 
 func (a Api) DeleteFile(c *gin.Context) {
-	sensorId := c.Param("sensor_id")
-	if sensorId == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Undefined sensor id",
-			"success": false,
-		})
-		return
-	}
-
 	scanId := c.Param("scan_id")
 	if scanId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -100,7 +92,7 @@ func (a Api) DeleteFile(c *gin.Context) {
 		return
 	}
 
-	del := a.db.Model(db.KataFile{}).Where("sensor_id = ? AND scan_id = ?", sensorId, scanId).Delete(&db.KataFile{})
+	del := a.db.Model(db.KataFile{}).Where("scan_id = ?", scanId).Delete(&db.KataFile{})
 	if del.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": del.Error,
