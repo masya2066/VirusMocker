@@ -72,13 +72,13 @@ func (a *Api) router(r *gin.Engine) error {
 		{
 			scanner := kata.Group("/scanner")
 			{
+				scanner.POST("/v1", a.CreateFile)
 				v1 := scanner.Group("/v1")
 				{
 					// sensors := v1.Group("/sensors")
 					{
 						// instance := sensors.Group("/:sensor_id")
 						{
-							v1.POST("/scans", a.CreateFile)
 							v1.GET("/state", a.GetFiles)
 							v1.DELETE("/scans/:scan_id", a.DeleteFile)
 						}
