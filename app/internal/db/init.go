@@ -65,6 +65,7 @@ func Init() (db Database, fail error) {
 func migrate() error {
 	if err := DB.AutoMigrate(
 		&KataFile{},
+		&SensorId{},
 	); err != nil {
 		return err
 	}

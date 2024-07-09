@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"time"
 	"virus_mocker/app/internal/broker"
 	"virus_mocker/app/internal/config"
 	"virus_mocker/app/internal/db"
 	"virus_mocker/app/pkg/logger"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 )
@@ -45,6 +47,14 @@ func New() error {
 	api.logger.Info("Redis initialized!")
 
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // Allow all origins
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	if err := api.router(r); err != nil {
 		return err
 	}
@@ -67,7 +77,12 @@ func (a *Api) router(r *gin.Engine) error {
 				{
 					sensors := v1.Group("/sensors")
 					{
-						sensors.POST("/dd62a4ee-a00b-438c-b95a-58006b8f6056/scans", a.CreateFile)
+						instance := sensors.Group("/:sensor_id")
+						{
+							instance.POST("/scans", a.CreateFile)
+							instance.GET("/scans", a.GetFiles)
+							instance.DELETE("/scans/:scan_id", a.DeleteFile)
+						}
 					}
 				}
 			}
