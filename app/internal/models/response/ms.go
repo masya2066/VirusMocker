@@ -1,7 +1,7 @@
 package response
 
 type CreateFileMS struct {
-	Errors []string         `json:"errors"`
+	Errors []any            `json:"errors"`
 	Data   CreateFileMSData `json:"data"`
 }
 type CreateFileMSData struct {
@@ -10,7 +10,7 @@ type CreateFileMSData struct {
 }
 
 type CreateScanTaskMS struct {
-	Errors []string             `json:"errors"`
+	Errors []any                `json:"errors"`
 	Data   CreateScanTaskMSData `json:"data"`
 }
 
