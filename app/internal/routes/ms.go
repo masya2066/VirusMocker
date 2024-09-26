@@ -10,7 +10,7 @@ import (
 
 func (a Api) CreateFileMS(c *gin.Context) {
 	c.JSON(http.StatusOK, response.CreateFileMS{
-		Errors: nil,
+		Errors: []any{},
 		Data: response.CreateFileMSData{
 			FileUri: "https://s3.amazonaws.com/virus-mocker/0f6f3e8f-0c2b-4e9b-8f6c-1b5c6b8d9e10",
 			Ttl:     3600,
@@ -30,7 +30,7 @@ func (a Api) CreateScanTaskMS(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.CreateScanTaskMS{
-		Errors: nil,
+		Errors: []any{},
 		Data: response.CreateScanTaskMSData{
 			ScanId: uuid,
 		},
