@@ -1,32 +1,27 @@
 package main
 
 import (
-	"fmt"
 	"virus_mocker/app/internal/config"
 	"virus_mocker/app/internal/routes"
 	"virus_mocker/app/pkg/logger"
+
+	"gorm.io/gorm"
 )
 
 type server struct {
 	Logger *logger.Logger
+	DB     *gorm.DB
 	Config *config.Config
 }
 
 func main() {
-
-	sever := &server{
+	server := &server{
 		Logger: logger.Init(),
 	}
-	config, err := config.Init()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(config)
 
 	if err := routes.New(); err != nil {
 		panic(err)
 	}
 
-	sever.Logger.Info("Server was started correctly")
+	server.Logger.Info("Server was started correctly")
 }

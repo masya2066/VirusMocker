@@ -1,44 +1,104 @@
 package routes
 
 import (
+	"time"
 	"virus_mocker/app/internal/config"
+	"virus_mocker/app/internal/db"
 	"virus_mocker/app/pkg/logger"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
 
-type api struct {
-	Logger *logger.Logger
-	Config *config.Config
+type Api struct {
+	db     db.Database
+	config *config.Config
+	broker *redis.Client
+	logger *logger.Logger
 }
 
 func New() error {
 	var err error
-	api := &api{
-		Logger: logger.Init(),
-	}
-	api.Config, err = config.Init()
+
+	// redInit, err := broker.Init()
+	// if err != nil {
+	// 	return err
+	// }
+
+	db, err := db.Init()
 	if err != nil {
 		return err
 	}
-	r := gin.Default()
-	if err := r.Run(":8080"); err != nil {
-		return err
+
+	config, err := config.Init()
+	if err != nil {
+		panic(err)
 	}
 
+	api := &Api{
+		db:     db,
+		config: config,
+		logger: logger.Init(),
+		// broker: redInit,
+	}
+
+	api.logger.Info("Redis initialized!")
+
+	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // Allow all origins
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	if err := api.router(r); err != nil {
+		return err
+	}
+	if err := r.Run(":8080"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a *api) router(r *gin.Engine) error {
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+func (a *Api) router(r *gin.Engine) error {
+	api := r.Group("/api_v1")
+	{
+		api.GET("/ping", a.Ping)
+		kata := api.Group("/kata")
+		{
+			scanner := kata.Group("/scanner")
+			{
+				scanner.POST("/v1", a.CreateFileKata)
+				v1 := scanner.Group("/v1")
+				{
+					{
+						{
+							v1.GET("/state", a.GetFiles)
+							v1.DELETE("/:scan_id", a.DeleteFile)
+						}
+					}
+				}
+			}
+		}
+		ms := api.Group("/ms")
+		{
+			scanner := ms.Group("/scanner")
+			{
+				storage := scanner.Group("/storage")
+				{
+					storage.POST("uploadScanFile", a.CreateFileMS)
+				}
+				analysis := scanner.Group("/analysis")
+				{
+					analysis.POST("/createScanTask", a.CreateScanTaskMS)
+				}
+			}
+		}
+	}
 
 	return nil
 }
