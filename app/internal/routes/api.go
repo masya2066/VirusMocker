@@ -72,17 +72,29 @@ func (a *Api) router(r *gin.Engine) error {
 		{
 			scanner := kata.Group("/scanner")
 			{
-				scanner.POST("/v1", a.CreateFile)
+				scanner.POST("/v1", a.CreateFileKata)
 				v1 := scanner.Group("/v1")
 				{
-					// sensors := v1.Group("/sensors")
 					{
-						// instance := sensors.Group("/:sensor_id")
 						{
 							v1.GET("/state", a.GetFiles)
 							v1.DELETE("/:scan_id", a.DeleteFile)
 						}
 					}
+				}
+			}
+		}
+		ms := api.Group("/ms")
+		{
+			scanner := ms.Group("/scanner")
+			{
+				storage := scanner.Group("/storage")
+				{
+					storage.POST("uploadScanFile", a.CreateFileMS)
+				}
+				analysis := scanner.Group("/analysis")
+				{
+					analysis.POST("/createScanTask", a.CreateScanTaskMS)
 				}
 			}
 		}

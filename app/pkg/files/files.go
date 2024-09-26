@@ -5,8 +5,19 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/textproto"
 	"os"
 )
+
+type customFile struct {
+	*bytes.Reader
+}
+
+// Close implements io.Closer, which is required by multipart.File.
+func (cf *customFile) Close() error {
+	// No operation needed for in-memory data, but method is required.
+	return nil
+}
 
 func Create(path string) error {
 	file, err := os.Create(path)
@@ -46,4 +57,41 @@ func CheckFileContent(file multipart.File, data string) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func ByteSliceToMultipartFile(data []byte, fileName string) (multipart.File, *multipart.FileHeader, error) {
+	// Create a buffer to write our multipart form data
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Create a form-data header with a file part
+	header := make(textproto.MIMEHeader)
+	header.Set("Content-Disposition", fmt.Sprintf(`form-data; name="file"; filename="%s"`, fileName))
+	header.Set("Content-Type", "application/octet-stream")
+
+	// Create the file part and write the byte slice to it
+	part, err := writer.CreatePart(header)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if _, err = part.Write(data); err != nil {
+		return nil, nil, err
+	}
+
+	// Close the writer to finalize the form data
+	writer.Close()
+
+	// Create a customFile that implements the multipart.File interface
+	file := &customFile{Reader: bytes.NewReader(data)}
+
+	// Create a multipart.FileHeader to describe the file
+	fileHeader := &multipart.FileHeader{
+		Filename: fileName,
+		Header:   header,
+		Size:     int64(len(data)),
+	}
+
+	// Return the custom file as a multipart.File
+	return file, fileHeader, nil
 }

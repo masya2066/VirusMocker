@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (a Api) CreateFile(c *gin.Context) {
+func (a Api) CreateFileKata(c *gin.Context) {
 	objectType := c.Request.FormValue("objectType")
 	if objectType != "file" {
 		c.JSON(http.StatusBadRequest, gin.H{
