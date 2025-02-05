@@ -36,7 +36,7 @@ func (a Api) CreateFileKata(c *gin.Context) {
 
 	fl, hd, err := c.Request.FormFile("content")
 
-	go consumer.KataChecker(scanId, fl, hd, err)
+	go consumer.KataChecker(scanId, fl, hd, a.db, err)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": scanId,

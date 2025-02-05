@@ -40,11 +40,7 @@ func New() error {
 		db:     db,
 		config: config,
 		logger: logger.Init(),
-		// broker: redInit,
 	}
-
-	api.logger.Info("Redis initialized!")
-
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"}, // Allow all origins
