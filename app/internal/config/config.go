@@ -23,8 +23,8 @@ type Config struct {
 }
 
 func Init() (*Config, error) {
-	if err := folders.CheckFolderExists("app/configs"); err != nil {
-		if err := folders.Create("app/configs"); err != nil {
+	if err := folders.CheckFolderExists("configs"); err != nil {
+		if err := folders.Create("configs"); err != nil {
 			return nil, err
 		}
 		defaultConfig := defaultConfig()
@@ -33,11 +33,11 @@ func Init() (*Config, error) {
 			return nil, fmt.Errorf("error marshalling default config: %w", err)
 		}
 
-		if err := files.Create("app/configs/config.yml"); err != nil {
+		if err := files.Create("configs/config.yml"); err != nil {
 			return nil, err
 		}
 
-		err = os.WriteFile("app/configs/config.yml", data, 0666)
+		err = os.WriteFile("configs/config.yml", data, 0666)
 		if err != nil {
 			return nil, fmt.Errorf("error writing default config file: %w", err)
 		}
@@ -45,7 +45,7 @@ func Init() (*Config, error) {
 		return defaultConfig, nil
 	}
 
-	data, err := os.ReadFile("app/configs/config.yml")
+	data, err := os.ReadFile("configs/config.yml")
 	if err != nil {
 		return nil, fmt.Errorf("error reading config file: %w", err)
 	}

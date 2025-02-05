@@ -1,6 +1,8 @@
 package db
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type SensorId struct {
 	gorm.Model
@@ -25,6 +27,7 @@ const (
 	KataProcessing  = "processing"
 	KataNotDetected = "not detected"
 	KataDetect      = "detect"
+	KataError       = "error"
 )
 
 func (db *Database) KataCreate(file KataFile) error {
@@ -59,4 +62,12 @@ func (db *Database) KataGet(scanId string) (KataFile, error) {
 		return file, err
 	}
 	return file, nil
+}
+
+func (db *Database) KataUpdateState(scanId string, state string) error {
+	if updateError := db.DB.Model(KataFile{}).Where("scan_id = ?", scanId).Update("state", state); updateError.Error != nil {
+		return updateError.Error
+	}
+
+	return nil
 }
